@@ -58,7 +58,7 @@ function buy_buy_sell_USDT(arrKey, arrUSDT, mainCoin) {
         arrResult[i] = Math.floor((buyMain * pr_Main_USDT)*100)/100;
 
         if (arrResult[i] >= 1.01) {
-            pri(mainCoin, arrResult[i], arrUSDT[i]['symbol'], prCoin_USDT, prCoin_Main, pr_Main_USDT)
+            // pri(mainCoin, arrResult[i], arrUSDT[i]['symbol'], prCoin_USDT, prCoin_Main, pr_Main_USDT)
             if (arrResult[i] >= 1.03) {
                 arrCoin.push( `\nUSDT -> ${arrUSDT[i]['baseAsset']} -> ${mainCoin} -> USDT (result: ${arrResult[i]})\n`);
                 // message += `<i>${arrUSDT[i]['symbol']} -> ${arrResult[i]}, ${mainCoin}</i>\n`
@@ -186,6 +186,7 @@ const calculative = async (chatId, check_stop) => {
                 }
                 if (flag) {
                     prev = arrCoin;
+                    message += "Binance\n";
                     for (let i = 0; i < arrCoin.length; i++) {
                         message += arrCoin[i];
                         message += arrPrice[i];
@@ -196,7 +197,7 @@ const calculative = async (chatId, check_stop) => {
 
                 }
 
-            }, 60000)
+            }, 300000)
         })
     });
 }
