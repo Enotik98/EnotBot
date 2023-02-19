@@ -1,5 +1,6 @@
 const TelegramApi = require('node-telegram-bot-api')
 const axios = require('axios');
+const request = require('request')
 
 const token = '5729974955:AAFAK-WSesmjYoN9xq0-k3jdnS6Pqq-9Jh4'
 const bot = new TelegramApi(token, {polling: true})
@@ -8,7 +9,6 @@ const {gameOptions, againOptions} = require('./options')
 const chats = {}
 
 const startGame = async (chatId) => {
-    await bot.sendMessage(chatId, '0-9')
     const randNum = Math.floor(Math.random() * 10)
     chats[chatId] = randNum;
     await bot.sendMessage(chatId, 'Choose 0-9', gameOptions)
@@ -55,20 +55,21 @@ function buy_buy_sell_USDT(arrKey, arrUSDT, mainCoin) {
         let buyCoin = (1 / prCoin_USDT).toFixed(8);
         let buyMain = (buyCoin / prCoin_Main).toFixed(8);
         // arrResult[i] = buyMain * pr_Main_USDT;
-        arrResult[i] = Math.floor((buyMain * pr_Main_USDT)*100)/100;
+        arrResult[i] = Math.floor((buyMain * pr_Main_USDT) * 100) / 100;
 
         if (arrResult[i] >= 1.01) {
             // pri(mainCoin, arrResult[i], arrUSDT[i]['symbol'], prCoin_USDT, prCoin_Main, pr_Main_USDT)
             if (arrResult[i] >= 1.03) {
-                arrCoin.push( `\nUSDT -> ${arrUSDT[i]['baseAsset']} -> ${mainCoin} -> USDT (result: ${arrResult[i]})\n`);
+                arrCoin.push(`\nUSDT -> ${arrUSDT[i]['baseAsset']} -> ${mainCoin} -> USDT (result: ${arrResult[i]})\n`);
                 // message += `<i>${arrUSDT[i]['symbol']} -> ${arrResult[i]}, ${mainCoin}</i>\n`
-                 arrPrice.push( `Buy: ${prCoin_USDT} => ${prCoin_Main} => ${pr_Main_USDT}\n`)
+                arrPrice.push(`Buy: ${prCoin_USDT} => ${prCoin_Main} => ${pr_Main_USDT}\n`)
             }
         }
     }
     // console.log(arrResult);
 
 }
+
 function buy_sell_sell_USDT(arrKey, arrUSDT, mainCoin) {
     let arrResult = [];
     let pr_Main_USDT
@@ -100,7 +101,7 @@ function buy_sell_sell_USDT(arrKey, arrUSDT, mainCoin) {
         let buyCoin = (1 / prCoin_USDT).toFixed(8);
         let buyMain = (buyCoin * prCoin_Main).toFixed(8);
         // arrResult[i] = (buyMain * pr_Main_USDT).toFixed(2);
-        arrResult[i] = Math.floor((buyMain * pr_Main_USDT)*100)/100;
+        arrResult[i] = Math.floor((buyMain * pr_Main_USDT) * 100) / 100;
         if (arrResult[i] >= 1.01) {
             if (arrResult[i] >= 1.03) {
                 arrCoin.push(`\nUSDT -> ${arrUSDT[i]['baseAsset']} -> ${mainCoin} -> USDT (result: ${arrResult[i]})\n`);
@@ -180,7 +181,7 @@ const calculative = async (chatId, check_stop) => {
                                 break
                             }
                         }
-                    }else {
+                    } else {
                         flag = true;
                     }
                 }
@@ -201,8 +202,9 @@ const calculative = async (chatId, check_stop) => {
         })
     });
 }
-bot.onText(/\/ech0 (.+)/, (msg) => {
-    console.log(msg)
+bot.onText(/\/echo (.+)/, (msg, match) => {
+    // bot.sendMessage()
+    console.log(match)
 
 })
 const start = () => {
@@ -211,17 +213,19 @@ const start = () => {
         {command: '/info', description: 'info'},
         {command: '/game', description: 'info'},
         {command: '/calc', description: 'calc'},
+        {command: '/price', description: 'pinPrice'},
 
     ])
 
-    const chatId = -1001869234502;
+    const chatIdOfGroup = -1001869234502;
     check_stop = true;
-    calculative(chatId, check_stop);
+    calculative(chatIdOfGroup, check_stop);
 
-    bot.on('message', async msg => {
+    bot.on('message', msg => {
         const text = msg.text;
         const chatId = msg.chat.id;
-        console.log(chatId);
+        const msgId = msg.message_id;
+        // console.log(msg);
         let check_stop = false;
         if (text === '/start') {
             return bot.sendMessage(chatId, 'Hello, I`m Enot ');
@@ -232,20 +236,121 @@ const start = () => {
         if (text === '/game') {
             return startGame(chatId)
         }
-        if (text === '/calc' || text === '/stop') {
-            if (text === '/stop') {
-                check_stop = false
-            } else {
-                check_stop = true
-            }
-            let i = 0;
 
-            return
+        if (text === '/price') {
+            bot.sendMessage(chatId, 'Виберіть час для таймера', {
+                reply_markup: {
+                    keyboard: [
+                        ['5 хв', '15 хв'],
+                        ['30 хв', '1 год'],
+                        ['4 год', '8 год'],
+                        ['12 год', '24 год'],
+                    ],
+                    one_time_keyboard: true,
+                },
+            })
+            bot.once('message', (timeMsg) => {
+                let time = 0;
+                switch (timeMsg.text) {
+                    case '5 хв':
+                        time = 5 * 60 * 1000;
+                        break;
+                    case '15 хв':
+                        time = 5 * 60 * 1000;
+                        break;
+                    case '30 хв':
+                        time = 30 * 60 * 1000;
+                        break;
+                    case '1 год':
+                        time = 60 * 60 * 1000;
+                        break;
+                    case '4 год':
+                        time = 4 * 60 * 60 * 1000;
+                        break;
+                    case '8 год':
+                        time = 8 * 60 * 60 * 1000;
+                        break;
+                    case '12 год':
+                        time = 12 * 60 * 60 * 1000;
+                        break;
+                    case '24 год':
+                        time = 24 * 60 * 60 * 1000;
+                        break;
+                    default:
+                        bot.sendMessage(chatId, 'Потрібно вибрати час зі списку, спробуйте почати все спочатку')
+                        return;
+                }
+                // bot.sendMessage(chatId, `Таймер буде встановлено на ${time}`);
+
+
+                // Відправлення повідомлення з запитом на введення
+                bot.sendMessage(chatId, 'Яку монету ви хочете обрати?');
+
+                // Очікування відповіді від користувача
+                bot.once('message', (coinMsg) => {
+                    const coin = coinMsg.text.toUpperCase();
+                    const coinPriceUrl = `https://fapi.binance.com/fapi/v1/ticker/price?symbol=${coin}`;
+                    request.get(coinPriceUrl, (error, response, body) => {
+                        if (!error && response.statusCode === 200) {
+                            bot.sendMessage(chatId, 'Введіть ціну, будь ласка.');
+                            bot.once('message', (priceMsg) => {
+                                const price = parseFloat(priceMsg.text);
+                                if (isNaN(price)) {
+                                    bot.sendMessage(chatId, 'Введіть дійсне число!');
+                                    return;
+                                }
+
+                                const currentPrice = parseFloat(JSON.parse(body).price);
+                                let priceIsHightThenCurr;
+                                if (price >= currentPrice) {
+                                    priceIsHightThenCurr = true;
+                                } else {
+                                    priceIsHightThenCurr = false;
+                                }
+                                console.log("stat " + priceIsHightThenCurr + " curr " + currentPrice);
+                                const timer = setTimeout(() => {
+                                    clearInterval(intervalId);
+                                    bot.sendMessage(chatId, `Час вичерпано, ціна ${coin} не досягла ${price}`)
+                                }, time);
+                                if (priceIsHightThenCurr) {
+                                    bot.sendMessage(chatId, `Відстежуємо ціну ${coin} поки не стане більшою за ${price} протягом ${timeMsg.text}`);
+                                }else {
+                                    bot.sendMessage(chatId, `Відстежуємо ціну ${coin} поки не стане меньшою за ${price} протягом ${timeMsg.text}`);
+                                }
+                                const intervalId = setInterval(() => {
+                                    request.get(coinPriceUrl, (error, resp, body) => {
+                                        const currentPrice = parseFloat(JSON.parse(body).price);
+                                        // console.log(currentPrice)
+                                        if (priceIsHightThenCurr) {
+                                            if (currentPrice >= price) {
+                                                bot.sendMessage(chatId, `Ціна  ${coin} досягла ${price}`);
+                                                clearInterval(intervalId);
+                                                clearTimeout(timer);
+                                            }
+                                        } else {
+                                            if (currentPrice <= price) {
+                                                bot.sendMessage(chatId, `Ціна  ${coin} досягла ${price}`);
+                                                clearInterval(intervalId);
+                                                clearTimeout(timer);
+                                            }
+                                        }
+                                    });
+                                }, 10000);
+                            })
+                        } else {
+                            // console.log(error)
+                            bot.sendMessage(chatId, 'Щось пішло не так');
+                        }
+                    })
+                });
+            });
+            return;
+
         }
-        return bot.sendMessage(chatId, 'bla bla')
+        // return bot.sendMessage(chatId, 'bla bla')
 
     })
-    bot.on('callback_query', async msg => {
+    bot.on('callback_query', msg => {
         const data = msg.data;
         const chartId = msg.message.chat.id;
         if (data === '/again') {
